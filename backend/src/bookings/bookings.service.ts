@@ -1,0 +1,139 @@
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service';
+import { TelegramService } from '../telegram/telegram.service';
+import { CreateBookingDto } from './dto/create-booking.dto';
+import { CancelBookingDto } from './dto/cancel-booking.dto';
+
+const SLOT_MS = 60 * 60 * 1000;
+
+function startOfUtcDay(date: Date): Date {
+  const d = new Date(date);
+  d.setUTCHours(0, 0, 0, 0);
+  return d;
+}
+
+function alignToHourUtc(date: Date): Date {
+  const d = new Date(date);
+  d.setUTCMinutes(0, 0, 0);
+  return d;
+}
+
+function generateCancelCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+@Injectable()
+export class BookingsService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly telegram: TelegramService,
+  ) {}
+
+  async listRange(fromIso: string, toIso: string) {
+    const from = new Date(fromIso);
+    const to = new Date(toIso);
+    if (isNaN(from.getTime()) || isNaN(to.getTime()) || from >= to) {
+      throw new BadRequestException('Invalid date range');
+    }
+    const rows = await this.prisma.booking.findMany({
+      where: { startAt: { gte: from, lt: to } },
+      orderBy: { startAt: 'asc' },
+    });
+    return rows.map((b) => ({
+      id: b.id,
+      customerName: b.customerName,
+      startAt: b.startAt.toISOString(),
+      endAt: b.endAt.toISOString(),
+    }));
+  }
+
+  async listToday() {
+    const start = startOfUtcDay(new Date());
+    const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+    return this.listRange(start.toISOString(), end.toISOString());
+  }
+
+  async listWeek() {
+    const start = startOfUtcDay(new Date());
+    const end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
+    return this.listRange(start.toISOString(), end.toISOString());
+  }
+
+  async create(dto: CreateBookingDto) {
+    const startAt = alignToHourUtc(new Date(dto.startAt));
+    const now = new Date();
+    if (startAt.getTime() < now.getTime() - SLOT_MS) {
+      throw new BadRequestException('Cannot book a past hour');
+    }
+    const endAt = new Date(startAt.getTime() + SLOT_MS);
+    const cancelCode = generateCancelCode();
+
+    try {
+      const booking = await this.prisma.booking.create({
+        data: {
+          customerName: dto.customerName.trim(),
+          phone: dto.phone.trim(),
+          startAt,
+          endAt,
+          cancelCode,
+        },
+      });
+
+      this.telegram
+        .notifyNewBooking({
+          customerName: booking.customerName,
+          phone: booking.phone,
+          startAt: booking.startAt,
+          endAt: booking.endAt,
+          cancelCode: booking.cancelCode,
+        })
+        .catch(() => undefined);
+
+      return {
+        id: booking.id,
+        customerName: booking.customerName,
+        startAt: booking.startAt.toISOString(),
+        endAt: booking.endAt.toISOString(),
+        cancelCode: booking.cancelCode,
+      };
+    } catch (err: unknown) {
+      if (
+        err &&
+        typeof err === 'object' &&
+        'code' in err &&
+        (err as { code: string }).code === 'P2002'
+      ) {
+        throw new ConflictException('This time slot is already booked');
+      }
+      throw err;
+    }
+  }
+
+  async cancel(dto: CancelBookingDto) {
+    const normalizedPhone = dto.phone.trim();
+    const booking = await this.prisma.booking.findFirst({
+      where: { cancelCode: dto.cancelCode, phone: normalizedPhone },
+    });
+    if (!booking) {
+      throw new NotFoundException('Booking not found or code/phone do not match');
+    }
+
+    await this.prisma.booking.delete({ where: { id: booking.id } });
+
+    this.telegram
+      .notifyCancellation({
+        customerName: booking.customerName,
+        phone: booking.phone,
+        startAt: booking.startAt,
+        endAt: booking.endAt,
+      })
+      .catch(() => undefined);
+
+    return { ok: true };
+  }
+}
