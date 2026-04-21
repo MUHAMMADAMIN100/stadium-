@@ -69,7 +69,7 @@ export default function BookingPage() {
     const start = new Date(result.startAt);
     const end = new Date(result.endAt);
     return (
-      <div className="card">
+      <div className="card card-success">
         <h2>✅ Бронирование подтверждено!</h2>
         <div className="success">
           <div><b>Имя:</b> {result.customerName}</div>
@@ -145,10 +145,10 @@ export default function BookingPage() {
           </select>
         </label>
 
-        {error && <div className="error">{error}</div>}
+        {error && <div key={error} className="error">{error}</div>}
 
         <button className="btn" type="submit" disabled={submitting}>
-          {submitting ? 'Отправка…' : 'Забронировать'}
+          {submitting ? <><span className="spinner" />Отправка…</> : 'Забронировать'}
         </button>
       </form>
     </div>

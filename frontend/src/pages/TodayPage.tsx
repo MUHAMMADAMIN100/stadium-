@@ -50,12 +50,21 @@ export default function TodayPage() {
       <h2>Сегодня — {formatDate(today)}</h2>
       <div className="subtitle">Табло бронирований. Нажми на свободный час, чтобы забронировать.</div>
 
-      {error && <div className="error">Ошибка: {error}</div>}
+      {error && <div key={error} className="error">Ошибка: {error}</div>}
+
       {loading && bookings.length === 0 ? (
-        <div className="empty">Загрузка…</div>
+        <div className="today-grid">
+          {Array.from({ length: 24 }, (_, i) => (
+            <div
+              key={i}
+              className="skeleton"
+              style={{ '--i': i } as React.CSSProperties}
+            />
+          ))}
+        </div>
       ) : (
         <div className="today-grid">
-          {hours.map((h) => {
+          {hours.map((h, i) => {
             const b = slotBooking(h);
             const past = h.getTime() + 60 * 60 * 1000 <= now.getTime();
             const busy = !!b;
@@ -64,6 +73,7 @@ export default function TodayPage() {
               <div
                 key={h.toISOString()}
                 className={`slot ${cls}`}
+                style={{ '--i': i } as React.CSSProperties}
                 onClick={() => onSlotClick(h, busy, past)}
                 role={!busy && !past ? 'button' : undefined}
               >

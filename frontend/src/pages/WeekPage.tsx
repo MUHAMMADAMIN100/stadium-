@@ -48,17 +48,37 @@ export default function WeekPage() {
       <h2>Расписание на неделю</h2>
       <div className="subtitle">Бронирования на 7 дней. Кликни на свободную ячейку, чтобы забронировать.</div>
 
-      {error && <div className="error">Ошибка: {error}</div>}
+      {error && <div key={error} className="error">Ошибка: {error}</div>}
+
       {loading && bookings.length === 0 ? (
-        <div className="empty">Загрузка…</div>
+        <div className="week-scroll">
+          <div className="week-grid">
+            <div />
+            {Array.from({ length: 7 }, (_, col) => (
+              <div key={col} className="week-head skeleton-cell" style={{ height: 40 }} />
+            ))}
+            {hours.map((h) => (
+              <Fragment key={`skel-row-${h}`}>
+                <div className="week-hour-label">{pad(h)}:00</div>
+                {Array.from({ length: 7 }, (_, col) => (
+                  <div key={col} className="skeleton-cell" />
+                ))}
+              </Fragment>
+            ))}
+          </div>
+        </div>
       ) : (
         <div className="week-scroll">
           <div className="week-grid">
             <div />
-            {days.map((d) => {
+            {days.map((d, col) => {
               const isToday = d.getTime() === today.getTime();
               return (
-                <div key={d.toISOString()} className={`week-head ${isToday ? 'today' : ''}`}>
+                <div
+                  key={d.toISOString()}
+                  className={`week-head ${isToday ? 'today' : ''}`}
+                  style={{ '--col': col } as React.CSSProperties}
+                >
                   <div>{weekdayRu(d)}</div>
                   <div style={{ fontSize: 11, opacity: 0.8 }}>{formatDate(d).slice(0, 5)}</div>
                 </div>

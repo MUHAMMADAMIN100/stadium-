@@ -26,6 +26,76 @@ button:disabled {
   opacity: 0.55;
 }
 
+/* ============================================================
+   KEYFRAMES
+   ============================================================ */
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(22px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideInDown {
+  from { opacity: 0; transform: translateY(-18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.88); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+@keyframes bounceIn {
+  0%   { opacity: 0; transform: scale(0.65); }
+  55%  { opacity: 1; transform: scale(1.08); }
+  75%  { transform: scale(0.96); }
+  100% { transform: scale(1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  15%       { transform: translateX(-9px); }
+  35%       { transform: translateX(9px); }
+  55%       { transform: translateX(-6px); }
+  75%       { transform: translateX(6px); }
+}
+
+@keyframes shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
+  50%       { box-shadow: 0 0 0 5px rgba(74, 222, 128, 0.18); }
+}
+
+@keyframes codeReveal {
+  from { opacity: 0; transform: scale(0.8) translateY(8px); letter-spacing: 0; }
+  to   { opacity: 1; transform: scale(1) translateY(0); letter-spacing: 3px; }
+}
+
+/* ============================================================
+   PAGE TRANSITION
+   ============================================================ */
+
+.page-transition {
+  animation: fadeInUp 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ============================================================
+   LAYOUT
+   ============================================================ */
+
 .app {
   max-width: 1200px;
   margin: 0 auto;
@@ -42,6 +112,7 @@ button:disabled {
   border: 1px solid #1e2a47;
   border-radius: 14px;
   margin-bottom: 24px;
+  animation: slideInDown 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .navbar h1 {
@@ -61,17 +132,19 @@ button:disabled {
   border-radius: 10px;
   font-size: 14px;
   color: #b7c3de;
-  transition: all 0.15s;
+  transition: all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .nav-links a:hover {
   background: #1a2540;
   color: #fff;
+  transform: translateY(-1px);
 }
 
 .nav-links a.active {
   background: #2563eb;
   color: #fff;
+  animation: scaleIn 0.2s ease;
 }
 
 .card {
@@ -80,6 +153,7 @@ button:disabled {
   border-radius: 16px;
   padding: 24px;
   margin-bottom: 20px;
+  animation: fadeInUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .card h2 {
@@ -93,7 +167,10 @@ button:disabled {
   margin-bottom: 20px;
 }
 
-/* Today board */
+/* ============================================================
+   TODAY BOARD
+   ============================================================ */
+
 .today-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -107,7 +184,9 @@ button:disabled {
   font-weight: 600;
   font-size: 16px;
   border: 2px solid transparent;
-  transition: transform 0.12s, border-color 0.12s;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.15s, box-shadow 0.18s;
+  animation: fadeInUp 0.38s ease both;
+  animation-delay: calc(var(--i, 0) * 0.025s);
 }
 
 .slot.free {
@@ -115,11 +194,14 @@ button:disabled {
   color: #4ade80;
   border-color: #1b4a31;
   cursor: pointer;
+  animation: fadeInUp 0.38s ease both, pulseGlow 2.8s ease-in-out calc(0.38s + var(--i, 0) * 0.025s) infinite;
+  animation-delay: calc(var(--i, 0) * 0.025s), calc(var(--i, 0) * 0.025s);
 }
 
 .slot.free:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px) scale(1.03);
   border-color: #22c55e;
+  box-shadow: 0 8px 24px rgba(74, 222, 128, 0.22);
 }
 
 .slot.busy {
@@ -153,7 +235,42 @@ button:disabled {
   font-weight: 500;
 }
 
-/* Week */
+/* ============================================================
+   SKELETON LOADING
+   ============================================================ */
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    #101a30 25%,
+    #172040 50%,
+    #101a30 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite, fadeInUp 0.35s ease both !important;
+  animation-delay: calc(var(--i, 0) * 0.03s), calc(var(--i, 0) * 0.03s) !important;
+  border: 2px solid #1a2440;
+  min-height: 76px;
+  border-radius: 12px;
+}
+
+.skeleton-cell {
+  background: linear-gradient(
+    90deg,
+    #0d1528 25%,
+    #132041 50%,
+    #0d1528 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.6s ease-in-out infinite !important;
+  height: 28px;
+  border-radius: 6px;
+}
+
+/* ============================================================
+   WEEK
+   ============================================================ */
+
 .week-grid {
   display: grid;
   grid-template-columns: 60px repeat(7, 1fr);
@@ -163,6 +280,7 @@ button:disabled {
 
 .week-scroll {
   overflow-x: auto;
+  animation: fadeIn 0.45s ease both 0.05s;
 }
 
 .week-head {
@@ -172,6 +290,8 @@ button:disabled {
   background: #0f1830;
   border-radius: 8px;
   color: #b7c3de;
+  animation: slideInDown 0.35s ease both;
+  animation-delay: calc(var(--col, 0) * 0.04s);
 }
 
 .week-head.today {
@@ -191,7 +311,7 @@ button:disabled {
   height: 28px;
   border-radius: 6px;
   background: #132041;
-  transition: background 0.12s;
+  transition: background 0.15s, transform 0.15s;
 }
 
 .week-cell.free {
@@ -201,6 +321,9 @@ button:disabled {
 
 .week-cell.free:hover {
   background: #1a5332;
+  transform: scale(1.15);
+  z-index: 1;
+  position: relative;
 }
 
 .week-cell.busy {
@@ -211,7 +334,10 @@ button:disabled {
   background: #0d1528;
 }
 
-/* Form */
+/* ============================================================
+   FORM
+   ============================================================ */
+
 .form {
   display: flex;
   flex-direction: column;
@@ -225,7 +351,12 @@ button:disabled {
   gap: 6px;
   font-size: 13px;
   color: #8293b5;
+  animation: fadeInUp 0.4s ease both;
 }
+
+.form label:nth-child(1) { animation-delay: 0.06s; }
+.form label:nth-child(2) { animation-delay: 0.12s; }
+.form label:nth-child(3) { animation-delay: 0.18s; }
 
 .form input, .form select {
   padding: 11px 12px;
@@ -235,12 +366,18 @@ button:disabled {
   color: #e6edf7;
   font-size: 15px;
   outline: none;
-  transition: border-color 0.12s;
+  transition: border-color 0.18s, box-shadow 0.18s, transform 0.15s;
 }
 
 .form input:focus, .form select:focus {
   border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18);
+  transform: translateY(-1px);
 }
+
+/* ============================================================
+   BUTTONS
+   ============================================================ */
 
 .btn {
   padding: 12px 18px;
@@ -250,11 +387,22 @@ button:disabled {
   color: #fff;
   font-weight: 600;
   font-size: 15px;
-  transition: background 0.12s;
+  transition: background 0.15s, transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 .btn:hover:not(:disabled) {
   background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.35);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: none;
 }
 
 .btn.danger {
@@ -263,6 +411,7 @@ button:disabled {
 
 .btn.danger:hover:not(:disabled) {
   background: #b91c1c;
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.35);
 }
 
 .btn.secondary {
@@ -271,7 +420,27 @@ button:disabled {
 
 .btn.secondary:hover:not(:disabled) {
   background: #263556;
+  box-shadow: 0 6px 18px rgba(30, 42, 71, 0.5);
 }
+
+/* ============================================================
+   SPINNER
+   ============================================================ */
+
+.spinner {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border: 2px solid rgba(255, 255, 255, 0.28);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+  flex-shrink: 0;
+}
+
+/* ============================================================
+   STATUS MESSAGES
+   ============================================================ */
 
 .error {
   background: #3b1418;
@@ -280,6 +449,7 @@ button:disabled {
   padding: 12px;
   border-radius: 10px;
   font-size: 14px;
+  animation: shake 0.42s ease;
 }
 
 .success {
@@ -288,6 +458,7 @@ button:disabled {
   color: #4ade80;
   padding: 16px;
   border-radius: 10px;
+  animation: bounceIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
 }
 
 .success .code {
@@ -301,12 +472,26 @@ button:disabled {
   border-radius: 6px;
   display: inline-block;
   margin: 8px 0;
+  animation: codeReveal 0.55s cubic-bezier(0.34, 1.56, 0.64, 1) 0.25s both;
 }
+
+/* ============================================================
+   SUCCESS CARD (full page states)
+   ============================================================ */
+
+.card-success {
+  animation: scaleIn 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ============================================================
+   MISC
+   ============================================================ */
 
 .empty {
   color: #6e7ea3;
   font-style: italic;
   padding: 16px 0;
+  animation: fadeIn 0.3s ease;
 }
 
 .legend {
@@ -316,6 +501,7 @@ button:disabled {
   color: #8293b5;
   margin-top: 16px;
   flex-wrap: wrap;
+  animation: fadeIn 0.5s ease both 0.2s;
 }
 
 .legend .dot {

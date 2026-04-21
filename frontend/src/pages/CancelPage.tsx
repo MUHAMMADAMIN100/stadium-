@@ -24,7 +24,7 @@ export default function CancelPage() {
 
   if (success) {
     return (
-      <div className="card">
+      <div className="card card-success">
         <h2>✅ Бронирование отменено</h2>
         <div className="success">
           Ваша бронь успешно отменена. Владелец получил уведомление.
@@ -65,10 +65,10 @@ export default function CancelPage() {
           />
         </label>
 
-        {error && <div className="error">{error}</div>}
+        {error && <div key={error} className="error">{error}</div>}
 
         <button className="btn danger" type="submit" disabled={submitting}>
-          {submitting ? 'Отмена…' : 'Отменить бронь'}
+          {submitting ? <><span className="spinner" />Отмена…</> : 'Отменить бронь'}
         </button>
       </form>
     </div>

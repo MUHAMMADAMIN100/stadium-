@@ -1,10 +1,12 @@
-import { NavLink, Navigate, Route, Routes } from 'react-router-dom';
+import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import TodayPage from './pages/TodayPage';
 import WeekPage from './pages/WeekPage';
 import BookingPage from './pages/BookingPage';
 import CancelPage from './pages/CancelPage';
 
 export default function App() {
+  const location = useLocation();
+
   return (
     <div className="app">
       <nav className="navbar">
@@ -17,13 +19,15 @@ export default function App() {
         </div>
       </nav>
 
-      <Routes>
-        <Route path="/" element={<TodayPage />} />
-        <Route path="/week" element={<WeekPage />} />
-        <Route path="/book" element={<BookingPage />} />
-        <Route path="/cancel" element={<CancelPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
+      <div key={location.pathname} className="page-transition">
+        <Routes location={location}>
+          <Route path="/" element={<TodayPage />} />
+          <Route path="/week" element={<WeekPage />} />
+          <Route path="/book" element={<BookingPage />} />
+          <Route path="/cancel" element={<CancelPage />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </div>
     </div>
   );
 }
