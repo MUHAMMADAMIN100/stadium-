@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, type Booking } from '../api';
-import { formatDate, formatHour, isSameHour, pad, startOfDay } from '../utils';
+import { addHours, formatDate, formatHour, isSameHour, pad, startOfDay } from '../utils';
 
 export default function TodayPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
