@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api, type Booking } from '../api';
-import { addHours, formatDate, formatHour, isSameHour, pad, startOfDay } from '../utils';
+import { addHours, formatDate, formatHour, isSameHour, startOfDay } from '../utils';
 
 export default function TodayPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -74,7 +74,7 @@ export default function TodayPage() {
                 role={!busy && !past ? 'button' : undefined}
               >
                 <div className="slot-hour">
-                  {formatHour(h)}–{pad((h.getHours() + 1) % 24)}:00
+                  {formatHour(h)}–{formatHour(addHours(h, 1))}
                 </div>
                 <div className="slot-status">
                   {busy ? 'Занято' : past ? 'Прошло' : 'Свободно'}
