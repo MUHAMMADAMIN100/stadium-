@@ -10,11 +10,13 @@ import { CreateBookingDto } from './dto/create-booking.dto';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 
 const SLOT_MS = 60 * 60 * 1000;
+const TJ_OFFSET_MS = 5 * 60 * 60 * 1000; // Asia/Dushanbe UTC+5
 
-function startOfUtcDay(date: Date): Date {
-  const d = new Date(date);
-  d.setUTCHours(0, 0, 0, 0);
-  return d;
+// Returns midnight of the given date in Tajikistan time, expressed as UTC
+function startOfTjDay(date: Date): Date {
+  const tjMs = date.getTime() + TJ_OFFSET_MS;
+  const tjMidnightMs = Math.floor(tjMs / (24 * 60 * 60 * 1000)) * (24 * 60 * 60 * 1000);
+  return new Date(tjMidnightMs - TJ_OFFSET_MS);
 }
 
 function alignToHourUtc(date: Date): Date {
@@ -53,13 +55,13 @@ export class BookingsService {
   }
 
   async listToday() {
-    const start = startOfUtcDay(new Date());
+    const start = startOfTjDay(new Date());
     const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
     return this.listRange(start.toISOString(), end.toISOString());
   }
 
   async listWeek() {
-    const start = startOfUtcDay(new Date());
+    const start = startOfTjDay(new Date());
     const end = new Date(start.getTime() + 7 * 24 * 60 * 60 * 1000);
     return this.listRange(start.toISOString(), end.toISOString());
   }

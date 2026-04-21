@@ -30,11 +30,7 @@ export default function TodayPage() {
   const today = startOfDay(new Date());
   const now = new Date();
 
-  const hours = Array.from({ length: 24 }, (_, i) => {
-    const h = new Date(today);
-    h.setHours(i, 0, 0, 0);
-    return h;
-  });
+  const hours = Array.from({ length: 24 }, (_, i) => addHours(today, i));
 
   function slotBooking(hour: Date): Booking | undefined {
     return bookings.find((b) => isSameHour(new Date(b.startAt), hour));
