@@ -32,6 +32,31 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
   return res.json() as Promise<T>;
 }
 
+export type BookingEvent =
+  | { type: 'created'; booking: Booking }
+  | { type: 'cancelled'; booking: { id: string; startAt: string; endAt: string } };
+
+export function subscribeBookings(onEvent: (e: BookingEvent) => void): () => void {
+  const es = new EventSource(`${API_URL}/bookings/stream`);
+
+  const handle = (raw: string) => {
+    try {
+      const parsed = JSON.parse(raw);
+      if (parsed && (parsed.type === 'created' || parsed.type === 'cancelled')) {
+        onEvent(parsed as BookingEvent);
+      }
+    } catch {
+      // ignore malformed payload
+    }
+  };
+
+  es.addEventListener('created', (e) => handle((e as MessageEvent).data));
+  es.addEventListener('cancelled', (e) => handle((e as MessageEvent).data));
+  // ping events are ignored
+
+  return () => es.close();
+}
+
 export const api = {
   today: () => request<Booking[]>('/bookings/today'),
   week: () => request<Booking[]>('/bookings/week'),

@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, Sse, MessageEvent } from '@nestjs/common';
+import { Observable, interval, map, merge } from 'rxjs';
 import { BookingsService } from './bookings.service';
 import { CancelBookingDto } from './dto/cancel-booking.dto';
 import { CreateBookingDto } from './dto/create-booking.dto';
@@ -20,6 +21,18 @@ export class BookingsController {
   @Get('range')
   range(@Query('from') from: string, @Query('to') to: string) {
     return this.bookings.listRange(from, to);
+  }
+
+  @Sse('stream')
+  stream(): Observable<MessageEvent> {
+    const events$ = this.bookings.stream.pipe(
+      map((event) => ({ type: event.type, data: event } as MessageEvent)),
+    );
+    // Heartbeat every 25s to keep proxies (Vercel/Railway) from closing the connection
+    const heartbeat$ = interval(25_000).pipe(
+      map(() => ({ type: 'ping', data: { t: Date.now() } } as MessageEvent)),
+    );
+    return merge(events$, heartbeat$);
   }
 
   @Post()

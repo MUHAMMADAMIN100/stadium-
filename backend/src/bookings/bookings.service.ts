@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Subject } from 'rxjs';
 import { PrismaService } from '../prisma/prisma.service';
 import { TelegramService } from '../telegram/telegram.service';
 import { CreateBookingDto } from './dto/create-booking.dto';
@@ -29,12 +30,22 @@ function generateCancelCode(): string {
   return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
+export type BookingEvent =
+  | { type: 'created'; booking: { id: string; customerName: string; startAt: string; endAt: string } }
+  | { type: 'cancelled'; booking: { id: string; startAt: string; endAt: string } };
+
 @Injectable()
 export class BookingsService {
+  private readonly events$ = new Subject<BookingEvent>();
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly telegram: TelegramService,
   ) {}
+
+  get stream() {
+    return this.events$.asObservable();
+  }
 
   async listRange(fromIso: string, toIso: string) {
     const from = new Date(fromIso);
@@ -96,6 +107,16 @@ export class BookingsService {
         })
         .catch(() => undefined);
 
+      this.events$.next({
+        type: 'created',
+        booking: {
+          id: booking.id,
+          customerName: booking.customerName,
+          startAt: booking.startAt.toISOString(),
+          endAt: booking.endAt.toISOString(),
+        },
+      });
+
       return {
         id: booking.id,
         customerName: booking.customerName,
@@ -135,6 +156,15 @@ export class BookingsService {
         endAt: booking.endAt,
       })
       .catch(() => undefined);
+
+    this.events$.next({
+      type: 'cancelled',
+      booking: {
+        id: booking.id,
+        startAt: booking.startAt.toISOString(),
+        endAt: booking.endAt.toISOString(),
+      },
+    });
 
     return { ok: true };
   }

@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, type Booking } from '../api';
+import { api, subscribeBookings, type Booking } from '../api';
 import { addDays, addHours, formatDate, isSameHour, pad, startOfDay, weekdayRu } from '../utils';
 
 export default function WeekPage() {
@@ -24,7 +24,21 @@ export default function WeekPage() {
   useEffect(() => {
     load();
     const id = setInterval(load, 30_000);
-    return () => clearInterval(id);
+    const unsubscribe = subscribeBookings((event) => {
+      setBookings((prev) => {
+        if (event.type === 'created') {
+          if (prev.some((b) => b.id === event.booking.id)) return prev;
+          return [...prev, event.booking].sort(
+            (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime(),
+          );
+        }
+        return prev.filter((b) => b.id !== event.booking.id);
+      });
+    });
+    return () => {
+      clearInterval(id);
+      unsubscribe();
+    };
   }, []);
 
   const today = startOfDay(new Date());

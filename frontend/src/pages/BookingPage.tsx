@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { api, type Booking, type CreatedBooking } from '../api';
+import { api, subscribeBookings, type Booking, type CreatedBooking } from '../api';
 import { addDays, addHours, formatDate, formatHour, isSameHour, pad, startOfDay, weekdayRu } from '../utils';
 
 export default function BookingPage() {
@@ -17,6 +17,18 @@ export default function BookingPage() {
 
   useEffect(() => {
     api.week().then(setBookings).catch((err) => setError((err as Error).message));
+    const unsubscribe = subscribeBookings((event) => {
+      setBookings((prev) => {
+        if (event.type === 'created') {
+          if (prev.some((b) => b.id === event.booking.id)) return prev;
+          return [...prev, event.booking].sort(
+            (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime(),
+          );
+        }
+        return prev.filter((b) => b.id !== event.booking.id);
+      });
+    });
+    return () => unsubscribe();
   }, []);
 
   const slots = useMemo(() => {

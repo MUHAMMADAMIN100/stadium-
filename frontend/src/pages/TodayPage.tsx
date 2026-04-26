@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, type Booking } from '../api';
+import { api, subscribeBookings, type Booking } from '../api';
 import { addHours, formatDate, formatHour, isSameHour, startOfDay } from '../utils';
 
 export default function TodayPage() {
@@ -24,7 +24,21 @@ export default function TodayPage() {
   useEffect(() => {
     load();
     const id = setInterval(load, 30_000);
-    return () => clearInterval(id);
+    const unsubscribe = subscribeBookings((event) => {
+      setBookings((prev) => {
+        if (event.type === 'created') {
+          if (prev.some((b) => b.id === event.booking.id)) return prev;
+          return [...prev, event.booking].sort(
+            (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime(),
+          );
+        }
+        return prev.filter((b) => b.id !== event.booking.id);
+      });
+    });
+    return () => {
+      clearInterval(id);
+      unsubscribe();
+    };
   }, []);
 
   const today = startOfDay(new Date());
